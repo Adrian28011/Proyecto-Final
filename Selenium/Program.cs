@@ -77,7 +77,7 @@ app.MapPost("/Account/Login", async (HttpContext context, AppDbContext db) =>
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-    context.Response.Redirect("/");
+    context.Response.Redirect("/games");
 });
 
 app.MapGet("/Account/Logout", async (HttpContext context) =>
