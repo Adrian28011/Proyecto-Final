@@ -1,0 +1,193 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Selenium.Data
+@using Selenium.Models
+
+@page "/games"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject AppDbContext Db
+
+<PageTitle>Catálogo de Juegos</PageTitle>
+
+<h3>Catálogo de Videojuegos</h3>
+
+<EditForm Model="@formModel" OnValidSubmit="SaveGame">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="game-title">Título</label>
+        <InputText id="game-title" class="form-control" @bind-Value="formModel.Title" />
+        <ValidationMessage For="@(() => formModel.Title)" />
+    </div>
+
+    <div class="form-group">
+        <label for="game-genre">Género</label>
+        <InputText id="game-genre" class="form-control" @bind-Value="formModel.Genre" />
+        <ValidationMessage For="@(() => formModel.Genre)" />
+    </div>
+
+    <div class="form-group">
+        <label for="game-platform">Plataforma</label>
+        <InputText id="game-platform" class="form-control" @bind-Value="formModel.Platform" />
+        <ValidationMessage For="@(() => formModel.Platform)" />
+    </div>
+
+    <div class="form-group">
+        <label for="game-price">Precio</label>
+        <InputNumber id="game-price" class="form-control" @bind-Value="formModel.Price" />
+        <ValidationMessage For="@(() => formModel.Price)" />
+    </div>
+
+    <div class="form-group">
+        <label for="game-stock">Stock</label>
+        <InputNumber id="game-stock" class="form-control" @bind-Value="formModel.Stock" />
+        <ValidationMessage For="@(() => formModel.Stock)" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(formError))
+    {
+        <p id="game-form-error" class="error-message">@formError</p>
+    }
+
+    <button id="game-save-btn" type="submit">
+        @(editingId is null ? "Agregar juego" : "Guardar cambios")
+    </button>
+
+    @if (editingId is not null)
+    {
+        <button id="game-cancel-edit-btn" type="button" @onclick="CancelEdit">Cancelar</button>
+    }
+</EditForm>
+
+<hr />
+
+@if (!games.Any())
+{
+    <p id="empty-state">No hay juegos en el catálogo todavía.</p>
+}
+else
+{
+    <table id="games-table" class="table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Género</th>
+                <th>Plataforma</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var game in games)
+            {
+                <tr id="game-row-@game.Id" data-testid="game-row">
+                    <td class="game-title-cell">@game.Title</td>
+                    <td>@game.Genre</td>
+                    <td>@game.Platform</td>
+                    <td>@game.Price.ToString("0.00")</td>
+                    <td>@game.Stock</td>
+                    <td>
+                        <button id="game-edit-@game.Id" @onclick="() => StartEdit(game)">Editar</button>
+                        <button id="game-delete-@game.Id" @onclick="() => DeleteGame(game)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<VideoGame> games = new();
+    private GameFormModel formModel = new();
+    private int? editingId = null;
+    private string? formError;
+
+    protected override void OnInitialized()
+    {
+        LoadGames();
+    }
+
+    private void LoadGames()
+    {
+        games = Db.VideoGames.OrderByDescending(g => g.Id).ToList();
+    }
+
+    private void SaveGame()
+    {
+        formError = null;
+
+        if (editingId is null)
+        {
+            var newGame = new VideoGame
+            {
+                Title = formModel.Title,
+                Genre = formModel.Genre,
+                Platform = formModel.Platform,
+                Price = formModel.Price,
+                Stock = formModel.Stock
+            };
+            Db.VideoGames.Add(newGame);
+        }
+        else
+        {
+            var existing = Db.VideoGames.First(g => g.Id == editingId);
+            existing.Title = formModel.Title;
+            existing.Genre = formModel.Genre;
+            existing.Platform = formModel.Platform;
+            existing.Price = formModel.Price;
+            existing.Stock = formModel.Stock;
+        }
+
+        Db.SaveChanges();
+        formModel = new GameFormModel();
+        editingId = null;
+        LoadGames();
+    }
+
+    private void StartEdit(VideoGame game)
+    {
+        editingId = game.Id;
+        formModel = new GameFormModel
+        {
+            Title = game.Title,
+            Genre = game.Genre,
+            Platform = game.Platform,
+            Price = game.Price,
+            Stock = game.Stock
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        formModel = new GameFormModel();
+        formError = null;
+    }
+
+    private void DeleteGame(VideoGame game)
+    {
+        Db.VideoGames.Remove(game);
+        Db.SaveChanges();
+        LoadGames();
+    }
+
+    public class GameFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El título es obligatorio")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 2, ErrorMessage = "El título debe tener entre 2 y 100 caracteres")]
+        public string Title { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El género es obligatorio")]
+        public string Genre { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La plataforma es obligatoria")]
+        public string Platform { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(0, 9999, ErrorMessage = "El precio debe estar entre 0 y 9999")]
+        public decimal Price { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(0, 1000, ErrorMessage = "El stock debe estar entre 0 y 1000")]
+        public int Stock { get; set; }
+    }
+}
