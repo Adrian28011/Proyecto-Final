@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="Selenium/Selenium.csproj" />
+  <Project Path="Selenium test/Selenium test.csproj" Id="b474df19-1e8b-4562-a317-da191793c74d" />
+  <Project Path="Selenium/Selenium.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
 </Solution>
