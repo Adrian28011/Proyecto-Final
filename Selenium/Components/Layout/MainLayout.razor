@@ -1,19 +1,19 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
-<div class="page">
+<div class="page ">
     <div class="sidebar">
         <NavMenu />
     </div>
-    <AuthorizeView>
+    <main>
+        <div class=" text-color top-row-back top-row px-4">
+                <AuthorizeView>
     <Authorized>
-        <div style="text-align:right; padding:8px 16px;">
+        <div style="margin-right: auto;" >
             <span id="welcome-user">Hola, @context.User.Identity?.Name</span>
             <a id="logout-link" href="/Account/Logout">Cerrar sesión</a>
         </div>
     </Authorized>
 </AuthorizeView>
-    <main>
-        <div class="top-row px-4">
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
