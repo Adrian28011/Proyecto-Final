@@ -1,9 +1,38 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: darkslateblue
+}
+.top-row {
+    background: #241c47 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;  
+}
+
+.text-color{
+    color:white
+}
+
+.login-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: fit-content;
+    background-color: ghostwhite;
+    width: 90%;
+
+
+}
+.button-margin {
+    margin-top: 20px;
 }
 
 a, .btn-link {
     color: #006bb7;
+}
+
+.background{
+    color: darkslateblue
 }
 
 .btn-primary {
